@@ -71,3 +71,42 @@ exports.login = async (req,res)=>{
     })
   }
 }
+//Follow or Unfollow User
+exports.followUser = async(req,res)=>{
+  try {
+    const userToFollow = await User.findById(req.params.id);
+    const loggedInUser = await User.findById(req.user._id);
+    if(!userToFollow){
+      return res.status(404).json({
+        success:false,
+        message:"User not found"
+      });
+    }
+    if(loggedInUser.following.includes(userToFollow._id)){
+      const indexOfFollwing = loggedInUser.following.indexOf(userToFollow._id);
+      const indexOfFollwers = userToFollow.followers.indexOf(loggedInUser._id);
+      loggedInUser.following.splice(indexOfFollwing,1);
+      userToFollow.followers.splice(indexOfFollwers,1);
+      await loggedInUser.save();
+      await userToFollow.save();
+      return res.status(200).json({
+        success:true,
+        message:`${userToFollow.name} unfollowed`
+      })
+    }else{
+      loggedInUser.following.push(userToFollow._id);
+      userToFollow.followers.push(loggedInUser._id);
+      await loggedInUser.save();
+      await userToFollow.save();
+      return res.status(200).json({
+        success:true,
+        message:`${userToFollow.name} followed`
+      })
+    }
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:error.message
+    })
+  }
+}

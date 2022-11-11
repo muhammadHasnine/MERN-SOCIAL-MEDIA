@@ -1,59 +1,60 @@
 const mongoose = require("mongoose");
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true,"Please enter a name"]
+  name: {
+    type: String,
+    required: [true, "Please enter a name"],
+  },
+  avatar: {
+    public_id: String,
+    url: String,
+  },
+  email: {
+    type: String,
+    required: [true, "Please enter an email"],
+    unique: [true, "Email already exists"],
+  },
+  password: {
+    type: String,
+    required: [true, "Please enter a password"],
+    minlength: [6, "Password must be at least 6 characters"],
+    select: false,
+  },
+  posts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
     },
-    avatar:{
-        public_id:String,
-        url:String
+  ],
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    email:{
-        type:String,
-        required:[true,"Please enter an email"],
-        unique:[true,"Email already exists"]
+  ],
+
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    password:{
-        type:String,
-        required:[true,"Please enter a password"],
-        minlength:[6, "Password must be at least 6 characters"],
-        select:false
-    },
-    posts: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Post",
-        },
-      ],
-      followers: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
-    
-      following: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
+  ],
 });
 //Hashing Password before saving
-userSchema.pre("save", async function (next){
-  if(this.isModified("password")){ //if the password filed was modified then this code block will be exicute
-    this.password = await bcrypt.hash(this.password,10);
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    //if the password filed was modified then this code block will be exicute
+    this.password = await bcrypt.hash(this.password, 10);
   }
-  next()
-})
+  next();
+});
 //Compair Password for login
-userSchema.methods.matchPassword = async function (password){
-  return await bcrypt.compare(password,this.password)
-}
+userSchema.methods.matchPassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 //Generate Json Web Token
-userSchema.methods.generateToken = function (){
-  return jwt.sign({_id:this._id},process.env.JWT_SECRET)
-}
+userSchema.methods.generateToken = function () {
+  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET);
+};
 module.exports = mongoose.model("User", userSchema);
