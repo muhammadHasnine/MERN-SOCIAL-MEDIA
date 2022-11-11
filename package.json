@@ -1,0 +1,18 @@
+{
+  "name": "mern-social_media",
+  "version": "1.0.0",
+  "description": "Social-media",
+  "main": "backend/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"nodemon backend/server.js"
+  },
+  "author": "Muhammad Hasnine",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^6.7.2",
+    "nodemon": "^2.0.20"
+  }
+}
