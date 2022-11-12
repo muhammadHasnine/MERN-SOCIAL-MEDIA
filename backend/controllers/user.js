@@ -106,7 +106,7 @@ exports.followUser = async(req,res)=>{
       await userToFollow.save();
       return res.status(200).json({
         success:true,
-        message:`${userToFollow.name} unfollowed`
+        message:`you unfollowed ${userToFollow.name}`
       })
     }else{
       loggedInUser.following.push(userToFollow._id);
@@ -115,7 +115,7 @@ exports.followUser = async(req,res)=>{
       await userToFollow.save();
       return res.status(200).json({
         success:true,
-        message:`${userToFollow.name} followed`
+        message:`Now you are following ${userToFollow.name}`
       })
     }
   } catch (error) {
@@ -184,6 +184,9 @@ exports.deleteMyProfile = async(req,res)=>{
   try {
     const user = await User.findById(req.user._id);
     const posts = user.posts;
+    const followers = user.followers;
+    const following = user.following;
+    const userId = user._id
     await user.remove();
     //logout after deleting profile
     res.cookie("token",null,{expires:new Date(Date.now()),httpOnly:true});
@@ -191,6 +194,20 @@ exports.deleteMyProfile = async(req,res)=>{
     for (let i = 0; i < posts.length; i++) {
       const post = await Post.findById(posts[i]);
       await post.remove();
+    }
+    //removeing user from followers following
+    for (let i = 0; i < followers.length; i++) {
+      const follower = await User.findById(followers[i]);
+      const index = follower.following.indexOf(userId);
+      follower.following.splice(index,1);
+      await follower.save();
+    }
+    //removeing user from following's followers
+    for (let i = 0; i < following.length; i++) {
+      const follows = await User.findById(following[i]);
+      const index = follows.followers.indexOf(userId);
+      follows.followers.splice(index,1);
+      await follows.save();
     }
     res.status(200).json({
       success:true,
