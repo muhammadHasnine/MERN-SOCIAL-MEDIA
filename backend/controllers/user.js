@@ -235,3 +235,40 @@ exports.myProfile = async(req,res)=>{
     });
   }
 }
+//Get User Profile
+exports.getUserProfile = async(req,res)=>{
+  try {
+    const user = await User.findById(req.params.id).populate("posts");
+    if(!user){
+      return res.status(400).json({
+        success:false,
+        message:"User not found"
+      })
+    }
+    res.status(200).json({
+      success:true,
+      user
+    })
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+  }
+}
+//Get All Users Profile
+exports.getAllUsersProfile = async(req,res)=>{
+  try {
+    const user = await User.find({});
+   
+    res.status(200).json({
+      success:true,
+      user
+    })
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+  }
+}
