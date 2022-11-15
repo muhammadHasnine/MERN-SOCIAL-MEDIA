@@ -1,5 +1,5 @@
 const express = require('express');
-const {register, login, followUser, logout, updatePassword, updateProfile, deleteMyProfile, myProfile, getUserProfile, getAllUsersProfile} = require('../controllers/user');
+const {register, login, followUser, logout, updatePassword, updateProfile, deleteMyProfile, myProfile, getUserProfile, getAllUsersProfile, forgotPassword} = require('../controllers/user');
 const {isAuthenticated} = require('../middlewares/auth');
 const router = express.Router();
 router.route("/register").post(register);
@@ -12,4 +12,5 @@ router.route("/delete/me").delete(isAuthenticated,deleteMyProfile);
 router.route("/me").get(isAuthenticated,myProfile);
 router.route("/user/:id").get(isAuthenticated,getUserProfile);
 router.route("/users").get(isAuthenticated,getAllUsersProfile);
+router.route("/forgot/password").post(forgotPassword);
 module.exports = router;
