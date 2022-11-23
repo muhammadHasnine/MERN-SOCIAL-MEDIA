@@ -1,7 +1,4 @@
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-// // Config
-// dotenv.config({ path: "backend/config/config.env" });
 exports.connectDB = () => {
   mongoose
     .connect(process.env.MONGO_URI)
