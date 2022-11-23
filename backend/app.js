@@ -11,6 +11,12 @@ if(process.env.NODE_ENV !== 'production'){
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser());
+
+//Inital display in browser
+app.get("/",(req,res)=>{
+    res.send("Backend is Working")
+})
+
 //Routes
 app.use("/api/v1",post)
 app.use("/api/v1",user)
