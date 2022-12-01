@@ -4,7 +4,10 @@ const post = require('./routes/post');
 const cookieParser = require('cookie-parser');
 const cors = require('cors')
 const app = express();
-app.use(cors())
+app.use(cors({
+    origin:"https://ajtimae.netlify.app",
+    credentials:true
+}))
 //Config for local
 if(process.env.NODE_ENV !== 'production'){
     require('dotenv').config({path:"backend/config/config.env"})
@@ -12,8 +15,8 @@ if(process.env.NODE_ENV !== 'production'){
 //Using Middlewares
 
 app.use(express.json());
-app.use(express.urlencoded({extended:true}))
 app.use(cookieParser());
+app.use(express.urlencoded({extended:true}))
 
 //Inital display in browser
 app.get("/",(req,res)=>{
