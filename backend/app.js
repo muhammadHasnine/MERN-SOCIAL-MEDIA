@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors')
 const app = express();
 app.use(cors({
-    origin:"http://localhost:3000",
+    origin:"https://mern-social-media-pi.vercel.app",
     allowedHeaders:['Content-Type', 'Authorization'],
     credentials:true,
     
