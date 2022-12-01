@@ -6,7 +6,6 @@ const cors = require('cors')
 const app = express();
 app.use(cors({
     origin:"https://stately-elf-873fbd.netlify.app",
-    allowedHeaders:['Content-Type', 'Authorization'],
     credentials:true,
     
 }))
