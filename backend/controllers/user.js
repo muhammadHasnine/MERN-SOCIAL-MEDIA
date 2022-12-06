@@ -45,7 +45,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password").populate("posts followers following")
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -235,7 +235,7 @@ exports.deleteMyProfile = async (req, res) => {
 //Get My Profile
 exports.myProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate("posts");
+    const user = await User.findById(req.user._id).populate("posts followers following");
     res.status(200).json({
       success: true,
       user,
@@ -250,7 +250,7 @@ exports.myProfile = async (req, res) => {
 //Get User Profile
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate("posts");
+    const user = await User.findById(req.params.id).populate("posts followers following");
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -271,10 +271,10 @@ exports.getUserProfile = async (req, res) => {
 //Get All Users Profile
 exports.getAllUsersProfile = async (req, res) => {
   try {
-    const user = await User.find({});
+    const users = await User.find({});
     res.status(200).json({
       success: true,
-      user,
+      users,
     });
   } catch (error) {
     res.status(500).json({
@@ -347,5 +347,25 @@ exports.resetPassword = async(req,res)=>{
       success: false,
       message: error.message,
     });
+  }
+}
+exports.getMyPosts = async(req,res)=>{
+  try {
+    const user = await User.findById(req.user._id);
+    const posts = []
+    for (let i = 0; i < user.posts.length; i++) {
+      const post = await Post.findById(user.posts[i]).populate("likes comments.user owner")
+      posts.push(post);
+      
+    }
+    res.status(200).json({
+      success:true,
+      posts
+    })
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:error.message
+    })
   }
 }
