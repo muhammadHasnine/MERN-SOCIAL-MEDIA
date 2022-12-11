@@ -2,10 +2,11 @@ const User = require("../models/user");
 const Post = require("../models/post");
 const {sendEmail} = require("../middlewares/sendEmail");
 const crypto = require("crypto");
+const cloudinary = require("cloudinary");
 //Registretion of an user
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password,avatar } = req.body;
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({
@@ -13,13 +14,16 @@ exports.register = async (req, res) => {
         message: "User already exists",
       });
     }
+    const myCloud = await cloudinary.v2.uploader.upload(avatar,{
+      folder:"avatar"
+    })
     user = await User.create({
       name,
       email,
       password,
       avatar: {
-        public_id: "cloudinary_id",
-        url: "cloudinary_url",
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
       },
     });
     const token = await user.generateToken();
@@ -169,12 +173,20 @@ exports.updatePassword = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const { name, email } = req.body;
+    const { name, email, avatar } = req.body;
     if (name) {
       user.name = name;
     }
     if (email) {
       user.email = email;
+    }
+    if(avatar){
+      await cloudinary.v2.uploader.destroy(user.avatar.public_id)
+      const myCloud = await cloudinary.v2.uploader.upload(avatar,{
+        folder:"avatar"
+      })
+      user.avatar.public_id = myCloud.public_id
+      user.avatar.url = myCloud.secure_url
     }
     await user.save();
     res.status(200).json({
@@ -196,6 +208,9 @@ exports.deleteMyProfile = async (req, res) => {
     const followers = user.followers;
     const following = user.following;
     const userId = user._id;
+    //removeing photo from cloudinary
+    await cloudinary.v2.uploader.destroy(user.avatar.public_id)
+    //removeing user from db
     await user.remove();
     //logout after deleting profile
     res.cookie("token", null, {
@@ -205,6 +220,9 @@ exports.deleteMyProfile = async (req, res) => {
     //delete all post of the user
     for (let i = 0; i < posts.length; i++) {
       const post = await Post.findById(posts[i]);
+      //delete  photo  from  user  posts
+      await cloudinary.v2.uploader.destroy(post.image.public_id);
+      //delete user posts
       await post.remove();
     }
     //removeing user from followers following
@@ -268,6 +286,7 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+
 //Get All Users Profile
 exports.getAllUsersProfile = async (req, res) => {
   try {
@@ -295,7 +314,7 @@ exports.forgotPassword = async (req, res) => {
     }
     const resetPasswordToken = user.getResetPasswordToken()
     await user.save();
-    const resetUrl = `${req.protocol}://${req.get("host")}/password/reset/${resetPasswordToken}`
+    const resetUrl = `https://ajtimae.netlify.app/api/v1/password/reset/${resetPasswordToken}`
     const message = `Reset your password by clicking this link -  ${resetUrl}`
     try {
       await sendEmail({
@@ -367,5 +386,25 @@ exports.getMyPosts = async(req,res)=>{
       success:false,
       message:error.message
     })
+  }
+}
+exports.getUserPosts = async(req,res)=>{
+  try {
+    const user = await User.findById(req.params.id);
+    const posts = []
+    for (let i = 0; i < user.posts.length; i++) {
+      const post = await Post.findById(user.posts[i]).populate("likes comments.user owner")
+      posts.push(post);
+      
+    }
+    res.status(200).json({
+      success:true,
+      posts
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 }
