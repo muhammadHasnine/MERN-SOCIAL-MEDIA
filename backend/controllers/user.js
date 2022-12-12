@@ -73,7 +73,6 @@ exports.login = async (req, res) => {
     res.status(200).cookie("token", token, options).json({
       success: true,
       user,
-      token,
     });
   } catch (error) {
     res.status(500).json({
@@ -85,10 +84,13 @@ exports.login = async (req, res) => {
 //Logout
 exports.logout = async (req, res) => {
   try {
-    res
-      .status(200)
-      .cookie("token", null, { expires: new Date(Date.now()), httpOnly: true, sameSite:"none",
-      secure:true })
+    const options = { 
+      expires: new Date(Date.now()), 
+      // httpOnly: true, 
+      sameSite: "none", 
+      secure: true 
+    }
+    res.status(200).cookie("token",null, options)
       .json({
         success: true,
         message: "Logged Out",
@@ -214,10 +216,13 @@ exports.deleteMyProfile = async (req, res) => {
     //removeing user from db
     await user.remove();
     //logout after deleting profile
-    res.cookie("token", null, {
-      expires: new Date(Date.now()),
-      httpOnly: true,
-    });
+    const options = { 
+      expires: new Date(Date.now()), 
+      // httpOnly: true, 
+      sameSite: "none", 
+      secure: true 
+    }
+    res.cookie("token", null, options);
     //delete all post of the user
     for (let i = 0; i < posts.length; i++) {
       const post = await Post.findById(posts[i]);
@@ -240,6 +245,31 @@ exports.deleteMyProfile = async (req, res) => {
       follows.followers.splice(index, 1);
       await follows.save();
     }
+    //remove all comments of the user from all posts
+    const allPost = await Post.find();
+    for (let i = 0; i < allPost.length; i++) {
+      const post = await Post.findById(allPost[i]._id);
+      for (let j = 0; j < post.comments.length; j++) {
+        if(post.comments[j].user.toString() === userId.toString()){
+          post.comments.splice(j,1) 
+        }
+      }
+      await post.save();
+    }
+    //remove all likes of the user from all posts
+    for (let i = 0; i < allPost.length; i++) {
+      const post = await Post.findById(allPost[i]._id);
+      for (let j = 0; j < post.likes.length; j++) {
+        if(post.likes[j].toString() === userId.toString()){
+          post.likes.splice(j, 1)
+          console.log(true)
+        }
+      }
+      await post.save();
+      console.log("like deleted")
+    }
+    console.log(userId)
+    
     res.status(200).json({
       success: true,
       message: "Profile Deleted",
