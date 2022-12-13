@@ -85,7 +85,7 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     const options = { 
-      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), 
+      expires: new Date(Date.now()), 
       httpOnly: true, 
       sameSite: "none", 
       secure: true 
@@ -218,7 +218,7 @@ exports.deleteMyProfile = async (req, res) => {
     //logout after deleting profile
     const options = { 
       expires: new Date(Date.now()), 
-      // httpOnly: true, 
+      httpOnly: true, 
       sameSite: "none", 
       secure: true 
     }
@@ -321,7 +321,9 @@ exports.getUserProfile = async (req, res) => {
 //Get All Users Profile
 exports.getAllUsersProfile = async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({
+      name:{ $regex: req.query.name, $options:"i"}
+    });
     res.status(200).json({
       success: true,
       users,
