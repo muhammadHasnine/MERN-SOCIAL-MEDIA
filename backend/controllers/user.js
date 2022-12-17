@@ -91,7 +91,7 @@ exports.logout = async (req, res) => {
       sameSite: "none", 
       secure: true 
     }
-    res.status(200).cookie("amigo","treas", options)
+    res.status(200).cookie("token",null, options)
       .json({
         success: true,
         message: "Logged Out",
